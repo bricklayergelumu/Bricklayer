@@ -1,6 +1,7 @@
 # -*- coding:utf8 -*-
 from bs4 import BeautifulSoup
 from math import radians, cos, sin, asin, sqrt
+from Badcase_attachment import retry
 import urllib
 import urllib2
 import cookielib
