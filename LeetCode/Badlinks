@@ -1,0 +1,60 @@
+# -*- coding:utf8 -*-
+from bs4 import BeautifulSoup
+import urllib
+import urllib2
+import cookielib
+import xlwt
+class Bdlink:
+    def __init__(self):
+        self.page_links = set()
+    def adam_login(self):
+        cookie_support= urllib2.HTTPCookieProcessor(cookielib.CookieJar())
+        opener = urllib2.build_opener(cookie_support, urllib2.HTTPHandler)
+        urllib2.install_opener(opener)
+        postdata=urllib.urlencode({ 'username':'weisheng.tang','password':'o0lij3r@dk3poj'})
+        req = urllib2.Request(
+                url = 'http://adam.autonavi.com/login',
+                data = postdata
+                )
+        result = urllib2.urlopen(req)
+    def page_loop(self):
+        operator = "史银龙"
+        header = 'http://adam.autonavi.com'
+        self.adam_login()
+        print 'Beginning detail page links collecting'
+        for p in xrange(1, 641):
+            print 'page%s begin' % p
+            url = 'http://adam.autonavi.com/J1/list/main?page_size=100&status=7&model_id=101,102&page_no=%s' % p
+            content = urllib2.urlopen(url)
+            soup = BeautifulSoup(content)
+            result_rows = soup.find('table', class_='sort').tbody
+            rowlist = result_rows.find_all('tr')
+            listsize = len(rowlist)
+            for r in xrange(listsize):
+                row = rowlist[r]
+                tag = row.find_all('td')
+                if tag[4]['data-val-team'].encode('utf-8') == operator:
+                    report_link = header + tag[2].a.get("href")
+                    self.page_links.add(report_link)
+            print 'page%s finished' % p
+        print 'Detail page links collecting finished'
+
+    def table_links(self):
+        print 'Beginning write report'
+        style = xlwt.XFStyle()
+        font = xlwt.Font()
+        font.name = 'TimesNewRoman'    # 指定“宋体”
+        style.font = font
+        wbk = xlwt.Workbook()
+        link_sheet = wbk.add_sheet('links')
+        row_order = 0
+        for i in self.page_links:
+            link_sheet.write(row_order,0,i,style)
+            row_order += 1
+        wbk.save('Badcase_links.xls')
+        print 'Writing finished!'
+
+if __name__=="__main__":
+    linkspider = Bdlink()
+    linkspider.page_loop()
+    linkspider.table_links()
